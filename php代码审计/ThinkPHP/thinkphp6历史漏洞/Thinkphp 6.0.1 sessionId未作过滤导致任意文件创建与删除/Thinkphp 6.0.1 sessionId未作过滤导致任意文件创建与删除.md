@@ -2,7 +2,7 @@
 - **受影响版本**：ThinkPHP <= 6.0.1
 
 ## 漏洞分析
-ThinkPHP 6.0.2 版本之前的 Session 组件由于在设置 Session ID 时未对输入值进行 `ctype_alnum()` 等严格过滤校验，攻击者可通过 Cookie 中的 PHPSESSID 参数注入任意字符，导致 Session 数据以自定义文件名形式写入文件系统。
+ThinkPHP 6.0.2 版本之前的 Session 组件由于在设置 Session ID 时未对输入值进行 `ctype_alnum()` 等严格过滤校验，攻击者可通过 Cookie 中的 PHPSESSID 参数注入任意字符，导致 Session 数据以自定义文件名形式写入或删除文件系统。
 
 ## 漏洞复现
 
@@ -36,7 +36,7 @@ ThinkPHP 6.0.2 版本之前的 Session 组件由于在设置 Session ID 时未�
 
 ![图片7](./img/img-7.png)
 
-6. `save` 方法获取 `$sessionId` ，如果给 Session 设置的值（即 `$username` ）不为空则调用 `$this->handler->write($sessionId, $data)` 将 `$sessionId` 与 `$username` 传入。
+6. `save` 方法获取 `$sessionId` ，如果给 Session 设置的值（即 `$username` ）不为空则调用 `$this->handler->write($sessionId, $data)` 将 `$sessionId` 与 `$username` 传入。如果为空则调用 `$this->handler->delete($sessionId)` 删除文件。
 
 ![图片8](./img/img-8.png)
 
@@ -54,7 +54,7 @@ ThinkPHP 6.0.2 版本之前的 Session 组件由于在设置 Session ID 时未�
 
 ![图片12](./img/img-12.png)
 
-10. 漏洞验证成功。实际利用需确保暴露 runtime 目录。
+10. 漏洞验证成功。实际利用中可通过 `/../../../public/aaaaaaaaaaa.php` 凑 32 个字符路径穿越到指定目录写入或删除。
 
 ![图片12](./img/img-13.png)
 
